@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Copyright & Fair Use Checker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .upload-section {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 60px 40px;
+            text-align: center;
+            background: #f8f9ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .upload-section:hover {
+            border-color: #764ba2;
+            background: #f0f1ff;
+        }
+
+        .upload-section.dragover {
+            border-color: #764ba2;
+            background: #e8e9ff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.3em;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            color: #888;
+            font-size: 0.95em;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .settings {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .form-group select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .check-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .check-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .check-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            margin-top: 40px;
+            display: none;
+        }
+
+        .result-card {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .status-icon {
+            font-size: 3em;
+        }
+
+        .result-title {
+            flex: 1;
+        }
+
+        .result-title h2 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .result-title .confidence {
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .info-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-label {
+            font-size: 0.85em;
+            color: #888;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 1.1em;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .section {
+            margin-top: 25px;
+        }
+
+        .section-title {
+            font-size: 1.2em;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .factors-list, .practices-list, .restrictions-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+        .factors-list li, .practices-list li, .restrictions-list li {
+            background: white;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .recommendation-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .alternatives {
+            margin-top: 25px;
+        }
+
+        .alternative-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #28a745;
+        }
+
+        .alternative-item h4 {
+            color: #28a745;
+            margin-bottom: 8px;
+        }
+
+        .alternative-item a {
+            color: #667eea;
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .alternative-item a:hover {
+            text-decoration: underline;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #ff4444;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .success-badge {
+            background: #28a745;
+            color: white;
+        }
+
+        .warning-badge {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .danger-badge {
+            background: #dc3545;
+            color: white;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .settings {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .main-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Copyright & Fair Use Checker</h1>
+            <p>Check copyright status and assess fair use for educational content</p>
+        </div>
+
+        <div class="main-card">
+            <div class="upload-section" id="uploadZone">
+                <div class="upload-icon">📄</div>
+                <div class="upload-text">Click to upload or drag & drop</div>
+                <div class="upload-subtext">
+                    Supported: JPG, PNG, GIF, PDF, DOCX (Max 16MB)
+                </div>
+                <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.gif,.pdf,.docx,.doc">
+            </div>
+
+            <div class="settings">
+                <div class="form-group">
+                    <label for="courseType">📖 Course Type</label>
+                    <select id="courseType">
+                        <option value="Online">Online</option>
+                        <option value="Hybrid">Hybrid</option>
+                        <option value="In-person">In-person</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="institution">🏫 Institution</label>
+                    <select id="institution">
+                        <option value="Public University">Public University</option>
+                        <option value="Private University">Private University</option>
+                        <option value="Community College">Community College</option>
+                        <option value="K-12">K-12</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="check-button" id="checkButton" disabled>
+                Check Copyright & Fair Use
+            </button>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing file...</p>
+            </div>
+
+            <div class="error" id="error"></div>
+
+            <div class="results" id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const checkButton = document.getElementById('checkButton');
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const results = document.getElementById('results');
+        let selectedFile = null;
+
+        // Upload zone click
+        uploadZone.addEventListener('click', () => fileInput.click());
+
+        // File selection
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                selectedFile = e.target.files[0];
+                uploadZone.querySelector('.upload-text').textContent = selectedFile.name;
+                uploadZone.querySelector('.upload-icon').textContent = '✓';
+                checkButton.disabled = false;
+            }
+        });
+
+        // Drag and drop
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+
+            if (e.dataTransfer.files.length > 0) {
+                selectedFile = e.dataTransfer.files[0];
+                fileInput.files = e.dataTransfer.files;
+                uploadZone.querySelector('.upload-text').textContent = selectedFile.name;
+                uploadZone.querySelector('.upload-icon').textContent = '✓';
+                checkButton.disabled = false;
+            }
+        });
+
+        // Check button
+        checkButton.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('courseType', document.getElementById('courseType').value);
+            formData.append('institution', document.getElementById('institution').value);
+
+            // Show loading
+            loading.style.display = 'block';
+            results.style.display = 'none';
+            error.style.display = 'none';
+            checkButton.disabled = true;
+
+            try {
+                const response = await fetch('/check', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error analyzing file');
+                }
+
+                displayResults(data);
+            } catch (err) {
+                error.textContent = '❌ ' + err.message;
+                error.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+                checkButton.disabled = false;
+            }
+        });
+
+        function displayResults(data) {
+            const canUse = data.fairUseAssessment.canUse;
+            let statusIcon, statusClass, statusText;
+
+            if (canUse === true) {
+                statusIcon = '✅';
+                statusClass = 'success-badge';
+                statusText = 'CAN USE';
+            } else if (canUse === false) {
+                statusIcon = '❌';
+                statusClass = 'danger-badge';
+                statusText = 'CANNOT USE';
+            } else {
+                statusIcon = '⚠️';
+                statusClass = 'warning-badge';
+                statusText = 'NEEDS REVIEW';
+            }
+
+            let html = `
+                <div class="result-card">
+                    <div class="result-header">
+                        <div class="status-icon">${statusIcon}</div>
+                        <div class="result-title">
+                            <h2>${data.filename}</h2>
+                            <span class="badge ${statusClass}">${statusText}</span>
+                            <span class="confidence">Confidence: ${data.fairUseAssessment.confidence}</span>
+                        </div>
+                    </div>
+
+                    <div class="info-grid">
+            `;
+
+            // Source info
+            if (data.fileType === 'image') {
+                if (data.sourceInfo.dimensions) {
+                    html += `
+                        <div class="info-item">
+                            <div class="info-label">Dimensions</div>
+                            <div class="info-value">${data.sourceInfo.dimensions}</div>
+                        </div>
+                    `;
+                }
+                if (data.sourceInfo.format) {
+                    html += `
+                        <div class="info-item">
+                            <div class="info-label">Format</div>
+                            <div class="info-value">${data.sourceInfo.format}</div>
+                        </div>
+                    `;
+                }
+            } else {
+                if (data.sourceInfo.author) {
+                    html += `
+                        <div class="info-item">
+                            <div class="info-label">Author</div>
+                            <div class="info-value">${data.sourceInfo.author}</div>
+                        </div>
+                    `;
+                }
+                if (data.sourceInfo.title) {
+                    html += `
+                        <div class="info-item">
+                            <div class="info-label">Title</div>
+                            <div class="info-value">${data.sourceInfo.title}</div>
+                        </div>
+                    `;
+                }
+            }
+
+            // Copyright info
+            if (data.copyrightInfo.licenseType) {
+                html += `
+                    <div class="info-item">
+                        <div class="info-label">License</div>
+                        <div class="info-value">${data.copyrightInfo.licenseType}</div>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+
+            // Attribution
+            if (data.copyrightInfo.attributionRequired && data.copyrightInfo.attributionText) {
+                html += `
+                    <div class="section">
+                        <div class="section-title">⚠️ Attribution Required</div>
+                        <div class="recommendation-box">${data.copyrightInfo.attributionText}</div>
+                    </div>
+                `;
+            }
+
+            // Restrictions
+            if (data.copyrightInfo.restrictions && data.copyrightInfo.restrictions.length > 0) {
+                html += `
+                    <div class="section">
+                        <div class="section-title">⚠️ Restrictions</div>
+                        <ul class="restrictions-list">
+                            ${data.copyrightInfo.restrictions.map(r => `<li>${r}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            // Four factors
+            if (data.fairUseAssessment.factors && Object.keys(data.fairUseAssessment.factors).length > 0) {
+                html += `
+                    <div class="section">
+                        <div class="section-title">⚖️ Four-Factor Analysis</div>
+                        <ul class="factors-list">
+                            ${Object.entries(data.fairUseAssessment.factors).map(([key, value]) =>
+                                `<li><strong>${key.replace(/_/g, ' ').toUpperCase()}:</strong> ${value}</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            // Recommendation
+            if (data.fairUseAssessment.recommendation) {
+                html += `
+                    <div class="section">
+                        <div class="section-title">💡 Recommendation</div>
+                        <div class="recommendation-box">${data.fairUseAssessment.recommendation}</div>
+                    </div>
+                `;
+            }
+
+            // Best practices
+            if (data.fairUseAssessment.bestPractices && data.fairUseAssessment.bestPractices.length > 0) {
+                html += `
+                    <div class="section">
+                        <div class="section-title">✅ Best Practices</div>
+                        <ul class="practices-list">
+                            ${data.fairUseAssessment.bestPractices.map(p => `<li>${p}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            // Alternatives
+            if (data.alternatives && data.alternatives.length > 0) {
+                html += `
+                    <div class="section alternatives">
+                        <div class="section-title">🔄 Alternative Content Sources</div>
+                        ${data.alternatives.map(alt => `
+                            <div class="alternative-item">
+                                <h4>${alt.source}</h4>
+                                <p><strong>License:</strong> ${alt.license}</p>
+                                ${alt.url ? `<p><a href="${alt.url}" target="_blank">${alt.url}</a></p>` : ''}
+                                ${alt.description ? `<p>${alt.description}</p>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+
+            results.innerHTML = html;
+            results.style.display = 'block';
+            results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    </script>
+</body>
+</html>

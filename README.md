@@ -38,6 +38,35 @@ A comprehensive web-based tool to help educators identify images and written mat
 - Summary statistics and detailed reports
 - Export results for documentation
 
+## Three Ways to Use This Tool
+
+This tool provides **three different interfaces** - choose what works best for you:
+
+### 1. 🖥️ Command-Line Interface (Fastest)
+Perfect for quick checks and automation:
+```bash
+python3 check.py myimage.jpg
+python3 check.py document.pdf --course Online
+```
+**Best for**: Quick single-file checks, scripting, tech-savvy users
+
+### 2. 🌐 HTML Web Interface (Easiest)
+Beautiful, user-friendly browser interface:
+```bash
+python3 server.py
+# Open: http://localhost:5000
+```
+**Best for**: Non-technical users, presentations, mobile devices
+
+### 3. 📊 Streamlit App (Full-Featured)
+Advanced web app with batch processing:
+```bash
+streamlit run app.py
+```
+**Best for**: Batch processing, detailed analysis, exporting results
+
+📖 **See [USAGE_GUIDE.md](USAGE_GUIDE.md) for detailed instructions on all three interfaces**
+
 ## Installation
 
 ### Prerequisites
